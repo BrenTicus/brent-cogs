@@ -24,18 +24,35 @@ class Snitch(commands.Cog):
         default_guild_settings = {"notifygroups": {}}
         self.config.register_guild(**default_guild_settings)
 
+    @commands.group("snitch")
     @commands.guild_only()
     @checks.admin_or_permissions(manage_guild=True)
     async def _snitch(self, ctx: commands.Context):
-        """Base command to manage notifygroup settings."""
+        """Base command to manage snitch settings."""
         pass
+
+    def _valid_channel(ctx: commands.Context, channel: str) -> bool:
+        channel_list = ctx.guild.channels
+        for chan in channel_list:
+            if chan.name == channel:
+                return True
+        return False
 
     @_snitch.command(name="to")
     async def _snitch_add(self, ctx: commands.Context, group: str, *targets: str):
         """Add people, roles, or channels to a notification group.
         Example:
             `[p]snitch to tech #tech-general @Site.Tech`"""
-        pass
+        server = ctx.guild
+        async with self.config.guild(server).notifygroups() as notifygroups:
+            notifygroup = notifygroups.get(group)
+            if not notifygroup:
+                notifygroup = {"words": [], "targets": []}
+            for target in targets:
+                # TODO: handle channels
+                notifygroup["targets"].append(target)
+                await ctx.channel.send(f"{target} will be notified.")
+            notifygroups[group] = notifygroup
 
     @_snitch.command(name="stopto")
     async def _snitch_del(self, ctx: commands.Context, group: str, *targets: str):
@@ -44,25 +61,17 @@ class Snitch(commands.Cog):
             `[p]snitch stopto tech #tech-general`"""
         pass
 
-    @commands.guild_only()
-    @checks.mod_or_permissions(manage_messages=True)
-    async def _words(self, ctx: commands.Context):
-        """Base command to add or remove words from the trigger list.
-        Use double quotes to add or remove sentences.
-        """
-        pass
-
     @_snitch.command(name="list")
     async def _global_list(self, ctx: commands.Context):
         """Send a list of this server's people and words involved in snitching.
         Example:
-            [p]snitch on tech computer wifi it"""
+            [p]snitch list"""
         server = ctx.guild
         author = ctx.author
         group_list = await self.config.guild(server).notifygroups()
         if not group_list:
             await ctx.send(
-                _("There are no current notification groups set up in this server.")
+                "There are no current notification groups set up in this server."
             )
             return
         for name, vals in group_list:
@@ -71,30 +80,42 @@ class Snitch(commands.Cog):
             words = "another placeholder"
             group_text = f"{name} tells {people} about {words}"
         group_text = _("Filtered in this server:") + "\n\n" + group_text
+        group_text = "Filtered in this server:" + "\n"
+        for name, vals in group_list.items():
+            print(f"{name}: {vals}")
+            people = ", ".join(vals["targets"])
+            words = ", ".join(vals["words"])
+            group_text += f"\t{name} tells {people} about {words}\n"
         try:
             for page in pagify(group_text, delims=[" ", "\n"], shorten_by=8):
                 await author.send(page)
+                await ctx.channel.send(page)
         except discord.Forbidden:
             await ctx.send(_("I can't send direct messages to you."))
+            await ctx.send("I can't send direct messages to you.")
 
-    @_words.command(name="on", require_var_positional=True)
+    @_snitch.command(name="on", require_var_positional=True)
     async def words_add(self, ctx: commands.Context, group: str, *words: str):
         """Add words to the filter.
         Use double quotes to add sentences.
         Examples:
-            - `[p]snitch on tech computer wifi it`
-            - `[p]filter add "This is a sentence"`
+            `[p]snitch on tech computer wifi it`
         **Arguments:**
         - `[words...]` The words or sentences to filter.
         """
         server = ctx.guild
-        added = await self.add_to_words(server, group, words)
+        added = False
+        async with self.config.guild(server).notifygroups(group).words() as cur_list:
+            for w in words:
+                if w.lower() not in cur_list and w:
+                    cur_list.append(w.lower())
+                    added = True
         if added:
-            await ctx.send(_("Words successfully added to filter."))
+            await ctx.send("Words successfully added to filter.")
         else:
-            await ctx.send(_("Those words were already in the filter."))
+            await ctx.send("Those words were already in the filter.")
 
-    @_words.command(
+    @_snitch.command(
         name="noton", aliases=["remove", "del"], require_var_positional=True
     )
     async def words_remove(self, ctx: commands.Context, group: str, *words: str):
@@ -107,35 +128,16 @@ class Snitch(commands.Cog):
         - `[words...]` The words or sentences to no longer filter.
         """
         server = ctx.guild
-        removed = await self.remove_from_words(server, group, words)
-        if removed:
-            await ctx.send(_("Words successfully removed from filter."))
-        else:
-            await ctx.send(_("Those words weren't in the filter."))
-
-    async def add_to_words(
-        self, server: discord.Guild, group: str, words: list
-    ) -> bool:
-        added = False
-        async with self.config.guild(server).notifygroups(group).words() as cur_list:
-            for w in words:
-                if w.lower() not in cur_list and w:
-                    cur_list.append(w.lower())
-                    added = True
-
-        return added
-
-    async def remove_from_words(
-        self, server: discord.Guild, group: str, words: list
-    ) -> bool:
         removed = False
         async with self.config.guild(server).notifygroups(group).words() as cur_list:
             for w in words:
                 if w.lower() in cur_list:
                     cur_list.remove(w.lower())
                     removed = True
-
-        return removed
+        if removed:
+            await ctx.send("Words successfully removed from filter.")
+        else:
+            await ctx.send("Those words weren't in the filter.")
 
     async def filter_hits(
         self,
@@ -177,7 +179,7 @@ class Snitch(commands.Cog):
             try:
                 # TODO: notify in the right spots
                 words = "".join(hits)
-                channel.send(f"{author} said these words in {channel}: {words}")
+                await channel.send(f"{author} said these words in {channel}: {words}")
                 pass
             except discord.HTTPException:
                 pass
