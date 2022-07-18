@@ -13,8 +13,8 @@ from redbot.core.utils.chat_formatting import pagify, humanize_list
 
 class Snitch(commands.Cog):
     """
-    Cog to notify certain users or roles when certain phrases are said.
-    Most of this is modified from the default Filter module here: https://github.com/Cog-Creators/Red-DiscordBot/blob/V3/develop/redbot/cogs/words/words.py
+    Cog to notify groups of users, roles, or channels when certain phrases are said.
+    Modified from the default Filter module here: https://github.com/Cog-Creators/Red-DiscordBot/blob/V3/develop/redbot/cogs/words/words.py
     """
 
     def __init__(self, bot):
@@ -31,35 +31,125 @@ class Snitch(commands.Cog):
         """Base command to manage snitch settings."""
         pass
 
-    def _valid_channel(ctx: commands.Context, channel: str) -> bool:
-        channel_list = ctx.guild.channels
-        for chan in channel_list:
-            if chan.name == channel:
-                return True
-        return False
-
     @_snitch.command(name="to")
     async def _snitch_add(self, ctx: commands.Context, group: str, *targets: str):
         """Add people, roles, or channels to a notification group.
+        IDs can be passed in using # or @ as appropriate. Text input will be evaluated checking roles, then members,
+        then channels.
         Example:
-            `[p]snitch to tech #tech-general @Site.Tech`"""
+            `[p]snitch to tech #tech-general @Site.Tech Brenticus`"""
         server = ctx.guild
         async with self.config.guild(server).notifygroups() as notifygroups:
             notifygroup = notifygroups.get(group)
             if not notifygroup:
-                notifygroup = {"words": [], "targets": []}
+                notifygroup = {"words": [], "targets": {}}
             for target in targets:
-                # TODO: handle channels
-                notifygroup["targets"].append(target)
-                await ctx.channel.send(f"{target} will be notified.")
+                coerced = None
+                # We need to figure out what was passed in. If they're passed in as their ID, it's relatively easy, just
+                # try to coerce the value into an appropriate object and if it works bail out. As a bonus, these aren't
+                # async so we can just fudge it like so.
+                maybe_id = target.strip("!<#>")
+                if maybe_id.isnumeric():
+                    if coerced := server.get_member(int(maybe_id)):
+                        pass
+                    elif coerced := server.get_role(int(maybe_id)):
+                        pass
+                    elif coerced := server.get_channel(int(maybe_id)):
+                        pass
+                # If that doesn't work we need to filter through a bunch of object names to find a match.
+                elif not coerced:
+                    # Check roles for matches.
+                    matches = [
+                        role
+                        for role in ctx.guild.roles
+                        if role.name.lower() == target.lower()
+                    ]
+                    # Grab the first match if one exists.
+                    coerced = matches.pop(0) if any(matches) else None
+                    # If no match do the same for members.
+                    if not coerced:
+                        matches = [
+                            member
+                            for member in ctx.guild.members
+                            if member.name.lower() == target.lower()
+                            or member.display_name.lower() == target.lower()
+                        ]
+                        coerced = matches.pop(0) if any(matches) else None
+                    # And channels.
+                    if not coerced:
+                        matches = [
+                            channel
+                            for channel in ctx.guild.channels
+                            if channel.name.lower() == target.lower()
+                            and isinstance(channel, discord.TextChannel)
+                        ]
+                        coerced = matches.pop(0) if any(matches) else None
+
+                # We store the coerced value so things are easier later.
+                if coerced:
+                    target_type = type(coerced).__name__
+                    notifygroup["targets"][target] = {
+                        "id": coerced.id,
+                        "type": target_type,
+                    }
+                    await ctx.channel.send(f"{target_type} {target} will be notified.")
+                else:
+                    await ctx.channel.send(f"Could not identify {target}.")
             notifygroups[group] = notifygroup
 
-    @_snitch.command(name="stopto")
+    @_snitch.command(name="notto")
     async def _snitch_del(self, ctx: commands.Context, group: str, *targets: str):
-        """Remove people, roles, or channels to a notification group.
+        """Remove people, roles, or channels from a notification group.
         Example:
-            `[p]snitch stopto tech #tech-general`"""
+            `[p]snitch notto tech #tech-general`"""
         pass
+
+    @_snitch.command(name="on", require_var_positional=True)
+    async def _words_add(self, ctx: commands.Context, group: str, *words: str):
+        """Add words to the filter.
+        Use double quotes to add sentences.
+        Examples:
+            `[p]snitch on tech computer wifi it`
+        **Arguments:**
+        - `[words...]` The words or sentences to filter.
+        """
+        server = ctx.guild
+        async with self.config.guild(server).notifygroups() as notifygroups:
+            notifygroup = notifygroups.get(group)
+            if not notifygroup:
+                notifygroup = {"words": [], "targets": {}}
+            for word in words:
+                notifygroup["words"].append(word)
+                await ctx.channel.send(f"{word} will trigger a notification.")
+            notifygroups[group] = notifygroup
+
+    @_snitch.command(
+        name="noton", aliases=["remove", "del"], require_var_positional=True
+    )
+    async def _words_remove(self, ctx: commands.Context, group: str, *words: str):
+        """Remove words from the filter.
+        Use double quotes to remove sentences.
+        Examples:
+            - `[p]filter remove word1 word2 word3`
+            - `[p]filter remove "This is a sentence"`
+        **Arguments:**
+        - `[words...]` The words or sentences to no longer filter.
+        """
+        server = ctx.guild
+        async with self.config.guild(server).notifygroups() as notifygroups:
+            notifygroup = notifygroups.get(group)
+            if not notifygroup:
+                notifygroup = {"words": {}, "targets": {}}
+            for word in words:
+                notifygroup["words"].remove(word)
+                await ctx.channel.send(f"{word} will trigger a notification.")
+            notifygroups[group] = notifygroup
+
+    @_snitch.command(name="clear")
+    async def _clear_list(self, ctx):
+        """Wipe out all config data."""
+        await self.config.guild(ctx.guild).notifygroups.clear()
+        await ctx.channel.send("Cleared all snitch settings.")
 
     @_snitch.command(name="list")
     async def _global_list(self, ctx: commands.Context):
@@ -74,115 +164,66 @@ class Snitch(commands.Cog):
                 "There are no current notification groups set up in this server."
             )
             return
-        for name, vals in group_list:
-            print(vals)
+        for name, vals in group_list.items():
             people = "placeholder"
             words = "another placeholder"
             group_text = f"{name} tells {people} about {words}"
-        group_text = _("Filtered in this server:") + "\n\n" + group_text
+        group_text = "Filtered in this server:" + "\n\n" + group_text
         group_text = "Filtered in this server:" + "\n"
         for name, vals in group_list.items():
-            print(f"{name}: {vals}")
-            people = ", ".join(vals["targets"])
+            people = ", ".join(vals["targets"].keys())
             words = ", ".join(vals["words"])
             group_text += f"\t{name} tells {people} about {words}\n"
         try:
             for page in pagify(group_text, delims=[" ", "\n"], shorten_by=8):
-                await author.send(page)
                 await ctx.channel.send(page)
         except discord.Forbidden:
-            await ctx.send(_("I can't send direct messages to you."))
             await ctx.send("I can't send direct messages to you.")
 
-    @_snitch.command(name="on", require_var_positional=True)
-    async def words_add(self, ctx: commands.Context, group: str, *words: str):
-        """Add words to the filter.
-        Use double quotes to add sentences.
-        Examples:
-            `[p]snitch on tech computer wifi it`
-        **Arguments:**
-        - `[words...]` The words or sentences to filter.
-        """
-        server = ctx.guild
-        added = False
-        async with self.config.guild(server).notifygroups(group).words() as cur_list:
-            for w in words:
-                if w.lower() not in cur_list and w:
-                    cur_list.append(w.lower())
-                    added = True
-        if added:
-            await ctx.send("Words successfully added to filter.")
-        else:
-            await ctx.send("Those words were already in the filter.")
+    async def _send_to_member(self, member: discord.Member, message: str):
+        await member.send(message)
 
-    @_snitch.command(
-        name="noton", aliases=["remove", "del"], require_var_positional=True
-    )
-    async def words_remove(self, ctx: commands.Context, group: str, *words: str):
-        """Remove words from the filter.
-        Use double quotes to remove sentences.
-        Examples:
-            - `[p]filter remove word1 word2 word3`
-            - `[p]filter remove "This is a sentence"`
-        **Arguments:**
-        - `[words...]` The words or sentences to no longer filter.
-        """
-        server = ctx.guild
-        removed = False
-        async with self.config.guild(server).notifygroups(group).words() as cur_list:
-            for w in words:
-                if w.lower() in cur_list:
-                    cur_list.remove(w.lower())
-                    removed = True
-        if removed:
-            await ctx.send("Words successfully removed from filter.")
-        else:
-            await ctx.send("Those words weren't in the filter.")
-
-    async def filter_hits(
-        self,
-        text: str,
-        server: discord.Guild,
-    ) -> Set[str]:
-        if isinstance(server, discord.Guild):
-            guild = server
-            channel = None
-
-        hits: Set[str] = set()
-
-        # word_list = set(await self.config.guild(guild).words())
-        # TODO: fix above to check all words, remove below
-        word_list = ["test", "butt", "jerk"]
-
-        if word_list:
-            pattern = re.compile(
-                "|".join(rf"\b{re.escape(w)}\b" for w in word_list), flags=re.I
-            )
-        else:
-            pattern = None
-
-        if pattern:
-            hits |= set(pattern.findall(text))
-        return hits
-
-    async def check_words(self, message: discord.Message):
-        guild = message.guild
-        channel = message.channel
-        author = message.author
-        guild_data = await self.config.guild(guild).all()
-        member_data = await self.config.member(author).all()
-        created_at = message.created_at
-
-        hits = await self.filter_hits(message.content, message.channel)
-
-        if hits:
+    async def _notify_words(self, message: discord.Message, targets: list, words: list):
+        """Notify people who need to be notified."""
+        word_msg = ", ".join(words)
+        base_msg = f"{message.author.display_name} mentioned the following words in {message.channel.mention}: {word_msg}"
+        for target in targets:
             try:
-                # TODO: notify in the right spots
-                words = "".join(hits)
-                await channel.send(f"{author} said these words in {channel}: {words}")
-                pass
+                target_id = target["id"]
+                target_type = target["type"]
+                if target_type == "TextChannel":
+                    chan = message.guild.get_channel(target_id)
+                    await chan.send(f"@everyone {base_msg}")
+                elif target_type == "Member":
+                    member = message.guild.get_member(target_id)
+                    await self._send_to_member(member, base_msg)
+                elif target_type == "Role":
+                    role = message.guild.get_role(target_id)
+                    for member in role.members:
+                        await self._send_to_member(member, base_msg)
             except discord.HTTPException:
                 pass
+
+    async def _check_words(self, message: discord.Message):
+        """Check whether we really should notify people."""
+        server = message.guild
+
+        async with self.config.guild(server).notifygroups() as notifygroups:
+            for notifygroup in notifygroups.values():
+                word_list = notifygroup["words"]
+                if word_list:
+                    pattern = re.compile(
+                        "|".join(rf"\b{re.escape(w)}\b" for w in word_list), flags=re.I
+                    )
+                else:
+                    pattern = None
+                matches = None
+                if pattern:
+                    matches = set(pattern.findall(message.content))
+                if matches:
+                    await self._notify_words(
+                        message, notifygroup["targets"].values(), matches
+                    )
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -200,7 +241,7 @@ class Snitch(commands.Cog):
         if await self.bot.is_automod_immune(message):
             return
 
-        await self.check_words(message)
+        await self._check_words(message)
 
     @commands.Cog.listener()
     async def on_message_edit(self, _prior, message):
