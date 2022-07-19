@@ -193,7 +193,7 @@ class Snitch(commands.Cog):
             await ctx.send("I can't send direct messages to you.")
 
     async def _send_to_member(
-        self, member: discord.Member, message: str, embed: Optional[discord.Embed()]
+        self, member: discord.Member, message: str, embed: Optional[discord.Embed]
     ):
         if member.bot:
             return
