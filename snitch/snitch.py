@@ -196,7 +196,7 @@ class Snitch(commands.Cog):
         self,
         member: discord.Member,
         message: str,
-        embed: Optional[discord.Embed] = None,
+        embed: discord.Embed,
     ):
         if member.bot:
             return
@@ -204,14 +204,14 @@ class Snitch(commands.Cog):
 
     async def _notify_words(self, message: discord.Message, targets: list, words: list):
         """Notify people who need to be notified."""
-        word_msg = ", ".join(words)
-        base_msg = f"{message.author.display_name} mentioned the following words in {message.channel.mention}: {word_msg}"
+        word_msg = " and ".join(words)
+        base_msg = f"Snitching on {message.author.display_name} for saying {word_msg}"
         embed = discord.Embed(
-            title="test",
+            title=f"{message.author.display_name} in {message.channel}",
             type="link",
             description=message.content,
             url=message.jump_url,
-            colour=discord.Color.purple(),
+            colour=discord.Color.red(),
         )
         for target in targets:
             try:
@@ -219,7 +219,7 @@ class Snitch(commands.Cog):
                 target_type = target["type"]
                 if target_type == "TextChannel":
                     chan = message.guild.get_channel(target_id)
-                    await chan.send(f"@everyone {base_msg}")
+                    await chan.send(f"@everyone {base_msg}", embed)
                 elif target_type == "Member":
                     member = message.guild.get_member(target_id)
                     await self._send_to_member(member, base_msg, embed)
