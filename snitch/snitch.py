@@ -208,7 +208,7 @@ class Snitch(commands.Cog):
             type="link",
             description=message.content,
             url=message.jump_url,
-            colour="#8b03e5",
+            colour=discord.Color.purple(),
         )
         for target in targets:
             try:
