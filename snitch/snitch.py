@@ -219,7 +219,7 @@ class Snitch(commands.Cog):
                 target_type = target["type"]
                 if target_type == "TextChannel":
                     chan = message.guild.get_channel(target_id)
-                    await chan.send(f"@everyone {base_msg}", embed)
+                    await chan.send(f"@everyone {base_msg}", embed=embed)
                 elif target_type == "Member":
                     member = message.guild.get_member(target_id)
                     await self._send_to_member(member, base_msg, embed)
