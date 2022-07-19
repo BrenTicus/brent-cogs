@@ -31,6 +31,48 @@ class Snitch(commands.Cog):
         """Base command to manage snitch settings."""
         pass
 
+    def _identify_target(self, ctx: commands.Context, target):
+        coerced = None
+        server = ctx.guild
+        # We need to figure out what was passed in. If they're passed in as their ID, it's relatively easy, just
+        # try to coerce the value into an appropriate object and if it works bail out. As a bonus, these aren't
+        # async so we can just fudge it like so.
+        maybe_id = target.strip("!<#>")
+        if maybe_id.isnumeric():
+            if coerced := server.get_member(int(maybe_id)):
+                pass
+            elif coerced := server.get_role(int(maybe_id)):
+                pass
+            elif coerced := server.get_channel(int(maybe_id)):
+                pass
+        # If that doesn't work we need to filter through a bunch of object names to find a match.
+        elif not coerced:
+            # Check roles for matches.
+            matches = [
+                role for role in ctx.guild.roles if role.name.lower() == target.lower()
+            ]
+            # Grab the first match if one exists.
+            coerced = matches.pop(0) if any(matches) else None
+            # If no match do the same for members.
+            if not coerced:
+                matches = [
+                    member
+                    for member in ctx.guild.members
+                    if member.name.lower() == target.lower()
+                    or member.display_name.lower() == target.lower()
+                ]
+                coerced = matches.pop(0) if any(matches) else None
+            # And channels.
+            if not coerced:
+                matches = [
+                    channel
+                    for channel in ctx.guild.channels
+                    if channel.name.lower() == target.lower()
+                    and isinstance(channel, discord.TextChannel)
+                ]
+                coerced = matches.pop(0) if any(matches) else None
+        return coerced
+
     @_snitch.command(name="to")
     async def _snitch_add(self, ctx: commands.Context, group: str, *targets: str):
         """Add people, roles, or channels to a notification group.
@@ -44,47 +86,7 @@ class Snitch(commands.Cog):
             if not notifygroup:
                 notifygroup = {"words": [], "targets": {}}
             for target in targets:
-                coerced = None
-                # We need to figure out what was passed in. If they're passed in as their ID, it's relatively easy, just
-                # try to coerce the value into an appropriate object and if it works bail out. As a bonus, these aren't
-                # async so we can just fudge it like so.
-                maybe_id = target.strip("!<#>")
-                if maybe_id.isnumeric():
-                    if coerced := server.get_member(int(maybe_id)):
-                        pass
-                    elif coerced := server.get_role(int(maybe_id)):
-                        pass
-                    elif coerced := server.get_channel(int(maybe_id)):
-                        pass
-                # If that doesn't work we need to filter through a bunch of object names to find a match.
-                elif not coerced:
-                    # Check roles for matches.
-                    matches = [
-                        role
-                        for role in ctx.guild.roles
-                        if role.name.lower() == target.lower()
-                    ]
-                    # Grab the first match if one exists.
-                    coerced = matches.pop(0) if any(matches) else None
-                    # If no match do the same for members.
-                    if not coerced:
-                        matches = [
-                            member
-                            for member in ctx.guild.members
-                            if member.name.lower() == target.lower()
-                            or member.display_name.lower() == target.lower()
-                        ]
-                        coerced = matches.pop(0) if any(matches) else None
-                    # And channels.
-                    if not coerced:
-                        matches = [
-                            channel
-                            for channel in ctx.guild.channels
-                            if channel.name.lower() == target.lower()
-                            and isinstance(channel, discord.TextChannel)
-                        ]
-                        coerced = matches.pop(0) if any(matches) else None
-
+                coerced = self._identify_target(ctx, target)
                 # We store the coerced value so things are easier later.
                 if coerced:
                     target_type = type(coerced).__name__
@@ -109,7 +111,7 @@ class Snitch(commands.Cog):
                 await ctx.channel.send(f"Group doesn't exist.")
             for target in targets:
                 if target in notifygroup["targets"]:
-                    notifygroup["targets"].remove(target)
+                    notifygroup["targets"].pop(target)
                     await ctx.channel.send(f"Removed {target}.")
                 else:
                     await ctx.channel.send(f"Couldn't find {target}.")
