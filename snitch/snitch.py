@@ -193,7 +193,10 @@ class Snitch(commands.Cog):
             await ctx.send("I can't send direct messages to you.")
 
     async def _send_to_member(
-        self, member: discord.Member, message: str, embed: Optional[discord.Embed]
+        self,
+        member: discord.Member,
+        message: str,
+        embed: Optional[discord.Embed] = None,
     ):
         if member.bot:
             return
@@ -219,11 +222,11 @@ class Snitch(commands.Cog):
                     await chan.send(f"@everyone {base_msg}")
                 elif target_type == "Member":
                     member = message.guild.get_member(target_id)
-                    await self._send_to_member(member, base_msg)
+                    await self._send_to_member(member, base_msg, embed)
                 elif target_type == "Role":
                     role = message.guild.get_role(target_id)
                     for member in role.members:
-                        await self._send_to_member(member, base_msg)
+                        await self._send_to_member(member, base_msg, embed)
             except discord.HTTPException:
                 pass
 
