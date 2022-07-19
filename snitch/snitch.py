@@ -102,7 +102,17 @@ class Snitch(commands.Cog):
         """Remove people, roles, or channels from a notification group.
         Example:
             `[p]snitch notto tech #tech-general`"""
-        pass
+        server = ctx.guild
+        async with self.config.guild(server).notifygroups() as notifygroups:
+            notifygroup = notifygroups.get(group)
+            if not notifygroup:
+                await ctx.channel.send(f"Group doesn't exist.")
+            for target in targets:
+                if target in notifygroup["targets"]:
+                    notifygroup["targets"].remove(target)
+                    await ctx.channel.send(f"Removed {target}.")
+                else:
+                    await ctx.channel.send(f"Couldn't find {target}.")
 
     @_snitch.command(name="on", require_var_positional=True)
     async def _words_add(self, ctx: commands.Context, group: str, *words: str):
