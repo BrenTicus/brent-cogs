@@ -131,19 +131,17 @@ class Snitch(commands.Cog):
             if not notifygroup:
                 notifygroup = {"words": [], "targets": {}}
             for word in words:
-                notifygroup["words"].append(word)
+                if not word in notifygroup["words"]:
+                    notifygroup["words"].append(word)
                 await ctx.channel.send(f"{word} will trigger a notification.")
             notifygroups[group] = notifygroup
 
-    @_snitch.command(
-        name="noton", aliases=["remove", "del"], require_var_positional=True
-    )
+    @_snitch.command(name="noton", require_var_positional=True)
     async def _words_remove(self, ctx: commands.Context, group: str, *words: str):
         """Remove words from the filter.
         Use double quotes to remove sentences.
         Examples:
-            - `[p]filter remove word1 word2 word3`
-            - `[p]filter remove "This is a sentence"`
+            - `[p]snitch noton text wifi`
         **Arguments:**
         - `[words...]` The words or sentences to no longer filter.
         """
@@ -151,10 +149,10 @@ class Snitch(commands.Cog):
         async with self.config.guild(server).notifygroups() as notifygroups:
             notifygroup = notifygroups.get(group)
             if not notifygroup:
-                notifygroup = {"words": {}, "targets": {}}
+                notifygroup = {"words": [], "targets": {}}
             for word in words:
                 notifygroup["words"].remove(word)
-                await ctx.channel.send(f"{word} will trigger a notification.")
+                await ctx.channel.send(f"{word} will no longer trigger a notification.")
             notifygroups[group] = notifygroup
 
     @_snitch.command(name="clear")
@@ -176,11 +174,6 @@ class Snitch(commands.Cog):
                 "There are no current notification groups set up in this server."
             )
             return
-        for name, vals in group_list.items():
-            people = "placeholder"
-            words = "another placeholder"
-            group_text = f"{name} tells {people} about {words}"
-        group_text = "Filtered in this server:" + "\n\n" + group_text
         group_text = "Filtered in this server:" + "\n"
         for name, vals in group_list.items():
             people = ", ".join(vals["targets"].keys())
