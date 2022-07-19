@@ -181,12 +181,14 @@ class Snitch(commands.Cog):
             await ctx.send("I can't send direct messages to you.")
 
     async def _send_to_member(self, member: discord.Member, message: str):
+        if member.bot:
+            return
         await member.send(message)
 
     async def _notify_words(self, message: discord.Message, targets: list, words: list):
         """Notify people who need to be notified."""
         word_msg = ", ".join(words)
-        base_msg = f"{message.author.display_name} mentioned the following words in {message.channel.mention}: {word_msg}"
+        base_msg = f"{message.author.display_name} mentioned the following words in {message.channel.mention}: {word_msg}\n{message.to_reference()}"
         for target in targets:
             try:
                 target_id = target["id"]
