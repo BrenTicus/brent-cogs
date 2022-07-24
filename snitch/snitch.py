@@ -100,7 +100,7 @@ class Snitch(commands.Cog):
                 else:
                     await ctx.channel.send(f"Could not identify {target}.")
                     joined = ", ".join(notifygroup["targets"])
-                    await message.channel.send(
+                    await ctx.channel.send(
                         f"Couldn't find {target} in {group}. Options: {joined}"
                     )
                     logging.warning(
@@ -125,7 +125,7 @@ class Snitch(commands.Cog):
                 else:
                     await ctx.channel.send(f"Couldn't find {target}.")
                     joined = ", ".join(notifygroup["targets"])
-                    await message.channel.send(
+                    await ctx.channel.send(
                         f"Couldn't find {target} in {group}. Options: {joined}"
                     )
                     logging.warning(
@@ -200,7 +200,7 @@ class Snitch(commands.Cog):
                 await ctx.channel.send(page)
         except Exception as e:
             logging.error(e)
-            await message.channel.send(e)
+            await ctx.channel.send(e)
             await ctx.send("I can't send direct messages to you.")
 
     async def _send_to_member(
@@ -240,7 +240,7 @@ class Snitch(commands.Cog):
                     for member in role.members:
                         await self._send_to_member(member, base_msg, embed)
             except Exception as e:
-                await message.channel.send(e)
+                await ctx.channel.send(e)
                 logging.error(e)
 
     async def _check_words(self, message: discord.Message):
