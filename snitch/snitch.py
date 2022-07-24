@@ -117,6 +117,10 @@ class Snitch(commands.Cog):
                     await ctx.channel.send(f"Removed {target}.")
                 else:
                     await ctx.channel.send(f"Couldn't find {target}.")
+                    joined = ", ".join(notifygroup["targets"])
+                    logging.warning(
+                        f"Couldn't find {target} in {group}. Options: {joined}"
+                    )
 
     @_snitch.command(name="on", require_var_positional=True)
     async def _words_add(self, ctx: commands.Context, group: str, *words: str):
@@ -185,7 +189,7 @@ class Snitch(commands.Cog):
             for page in pagify(group_text, delims=[" ", "\n"], shorten_by=8):
                 await ctx.channel.send(page)
         except Exception as e:
-            logging.log(logging.ERROR, e)
+            logging.error(e)
             await ctx.send("I can't send direct messages to you.")
 
     async def _send_to_member(
@@ -197,7 +201,7 @@ class Snitch(commands.Cog):
         if member.bot:
             return
         await member.send(content=message, embed=embed)
-        logging.log(logging.INFO, f"Sent {message} to {member.display_name}.")
+        logging.info(f"Sent {message} to {member.display_name}.")
 
     async def _notify_words(self, message: discord.Message, targets: list, words: list):
         """Notify people who need to be notified."""
@@ -225,7 +229,7 @@ class Snitch(commands.Cog):
                     for member in role.members:
                         await self._send_to_member(member, base_msg, embed)
             except Exception as e:
-                logging.log(logging.ERROR, e)
+                logging.error(e)
 
     async def _check_words(self, message: discord.Message):
         """Check whether we really should notify people."""
