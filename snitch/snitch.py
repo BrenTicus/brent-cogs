@@ -23,7 +23,7 @@ class Snitch(commands.Cog):
         self.config = Config.get_conf(self, identifier=586925412)
         default_guild_settings = {"notifygroups": {}}
         self.config.register_guild(**default_guild_settings)
-        logging.basicConfig(level=logging.INFO)
+        logging.basicConfig(level=logging.DEBUG, filename="snitch.log")
 
     @commands.group("snitch")
     @commands.guild_only()
@@ -187,7 +187,7 @@ class Snitch(commands.Cog):
             for page in pagify(group_text, delims=[" ", "\n"], shorten_by=8):
                 await ctx.channel.send(page)
         except Exception as e:
-            logging.error(e)
+            logging.error(f"EXCPETION {e}\n  Triggered on {ctx.message} by {author}")
             await ctx.send("I can't send direct messages to you.")
 
     async def _send_to_member(
@@ -265,6 +265,7 @@ class Snitch(commands.Cog):
             or x is list
             and any([y for y in x if message.clean_content.startswith(y)])
         )
+        logging.debug(f"Prefixes: {prefixes} / Check: {prefix_check(prefixes)}")
         if prefix_check(prefixes):
             return
 
