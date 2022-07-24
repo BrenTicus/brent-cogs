@@ -23,7 +23,7 @@ class Snitch(commands.Cog):
         self.config = Config.get_conf(self, identifier=586925412)
         default_guild_settings = {"notifygroups": {}}
         self.config.register_guild(**default_guild_settings)
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=logging.DEBUG, filename="snitch.log")
 
     @commands.group("snitch")
     @commands.guild_only()
@@ -39,7 +39,7 @@ class Snitch(commands.Cog):
         # try to coerce the value into an appropriate object and if it works bail out. As a bonus, these aren't
         # async so we can just fudge it like so.
         maybe_id = target.strip("!<#>")
-        logging.log(logging.info(f"ID candidate: {maybe_id}"))
+        logging.info(f"ID candidate: {maybe_id}")
         if maybe_id.isnumeric():
             if coerced := server.get_member(int(maybe_id)):
                 pass
@@ -99,6 +99,9 @@ class Snitch(commands.Cog):
                     await ctx.channel.send(f"{target_type} {target} will be notified.")
                 else:
                     await ctx.channel.send(f"Could not identify {target}.")
+                    logging.warning(
+                        f"Couldn't find {target} in {group}. Options: {joined}"
+                    )
             notifygroups[group] = notifygroup
 
     @_snitch.command(name="notto")
