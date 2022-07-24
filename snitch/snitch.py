@@ -39,6 +39,7 @@ class Snitch(commands.Cog):
         # try to coerce the value into an appropriate object and if it works bail out. As a bonus, these aren't
         # async so we can just fudge it like so.
         maybe_id = target.strip("!<#>")
+        ctx.channel.send(f"ID candidate: {maybe_id}")
         logging.info(f"ID candidate: {maybe_id}")
         if maybe_id.isnumeric():
             if coerced := server.get_member(int(maybe_id)):
@@ -279,7 +280,7 @@ class Snitch(commands.Cog):
             or x is list
             and any([y for y in x if message.clean_content.startswith(y)])
         )
-        await message.channel.send(f"Prefixes: {prefixes}")
+        await message.reply(f"Prefixes: {prefixes}")
         if prefix_check(prefixes):
             return
 
