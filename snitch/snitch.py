@@ -263,6 +263,16 @@ class Snitch(commands.Cog):
         if await self.bot.cog_disabled_in_guild(self, message.guild):
             return
 
+        prefixes = await self.bot.get_prefix()
+        prefix_check = (
+            lambda x: x is str
+            and message.clean_content.startswith(x)
+            or x is list
+            and any([y for y in x if message.clean_content.startswith(y)])
+        )
+        if prefix_check(prefixes):
+            return
+
         author = message.author
         valid_user = isinstance(author, discord.Member) and not author.bot
         if not valid_user:
