@@ -279,7 +279,6 @@ class Snitch(commands.Cog):
             or x is list
             and any([y for y in x if message.clean_content.startswith(y)])
         )
-        await message.reply(f"Prefixes: {prefixes}")
         if prefix_check(prefixes):
             return
 
