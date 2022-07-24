@@ -263,14 +263,12 @@ class Snitch(commands.Cog):
             return
 
         prefixes = await self.bot.get_prefix(message)
-        prefix_check = (
-            lambda x: x is str
-            and message.clean_content.startswith(x)
-            or x is list
-            and any([y for y in x if message.clean_content.startswith(y)])
+        prefix_check = (x is str and message.clean_content.startswith(x)) or (
+            x is list
+            and any([y for y in prefixes if message.clean_content.startswith(y)])
         )
-        logging.info(f"Prefixes: {prefixes} / Check: {prefix_check(prefixes)}")
-        if prefix_check(prefixes):
+        logging.info(f"Prefixes: {prefixes} / Check: {prefix_check}")
+        if prefix_check:
             return
 
         author = message.author
