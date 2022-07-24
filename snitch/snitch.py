@@ -97,8 +97,7 @@ class Snitch(commands.Cog):
                     }
                     await ctx.channel.send(f"{target_type} {target} will be notified.")
                 else:
-                    await ctx.channel.send(f"Could not identify {target}.")
-                    joined = ", ".join(notifygroup["targets"])
+                    await ctx.channel.send(f"Could not identify {target}."
             notifygroups[group] = notifygroup
 
     @_snitch.command(name="notto")
@@ -117,7 +116,6 @@ class Snitch(commands.Cog):
                     await ctx.channel.send(f"Removed {target}.")
                 else:
                     await ctx.channel.send(f"Couldn't find {target}.")
-                    joined = ", ".join(notifygroup["targets"])
 
     @_snitch.command(name="on", require_var_positional=True)
     async def _words_add(self, ctx: commands.Context, group: str, *words: str):
