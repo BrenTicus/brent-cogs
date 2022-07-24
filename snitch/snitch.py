@@ -39,7 +39,7 @@ class Snitch(commands.Cog):
         # try to coerce the value into an appropriate object and if it works bail out. As a bonus, these aren't
         # async so we can just fudge it like so.
         maybe_id = target.strip("!<#>")
-        logging.info(f"ID candidate: {maybe_id}")
+        logging.warning(f"ID candidate: {maybe_id}")
         if maybe_id.isnumeric():
             if coerced := server.get_member(int(maybe_id)):
                 pass
@@ -201,7 +201,7 @@ class Snitch(commands.Cog):
         if member.bot:
             return
         await member.send(content=message, embed=embed)
-        logging.info(f"Sent {message} to {member.display_name}.")
+        logging.warning(f"Sent {message} to {member.display_name}.")
 
     async def _notify_words(self, message: discord.Message, targets: list, words: list):
         """Notify people who need to be notified."""
@@ -269,7 +269,7 @@ class Snitch(commands.Cog):
             prefixes is list
             and any([y for y in prefixes if message.clean_content.startswith(y)])
         )
-        logging.info(f"Prefixes: {prefixes} / Check: {prefix_check}")
+        logging.warning(f"Prefixes: {prefixes} / Check: {prefix_check}")
         if prefix_check:
             return
 
