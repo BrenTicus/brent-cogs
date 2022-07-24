@@ -23,7 +23,7 @@ class Snitch(commands.Cog):
         self.config = Config.get_conf(self, identifier=586925412)
         default_guild_settings = {"notifygroups": {}}
         self.config.register_guild(**default_guild_settings)
-        logging.basicConfig(level=logging.DEBUG, filename="snitch.log")
+        logging.basicConfig(level=logging.INFO)
 
     @commands.group("snitch")
     @commands.guild_only()
@@ -100,12 +100,6 @@ class Snitch(commands.Cog):
                 else:
                     await ctx.channel.send(f"Could not identify {target}.")
                     joined = ", ".join(notifygroup["targets"])
-                    await ctx.channel.send(
-                        f"Couldn't find {target} in {group}. Options: {joined}"
-                    )
-                    logging.warning(
-                        f"Couldn't find {target} in {group}. Options: {joined}"
-                    )
             notifygroups[group] = notifygroup
 
     @_snitch.command(name="notto")
@@ -125,12 +119,6 @@ class Snitch(commands.Cog):
                 else:
                     await ctx.channel.send(f"Couldn't find {target}.")
                     joined = ", ".join(notifygroup["targets"])
-                    await ctx.channel.send(
-                        f"Couldn't find {target} in {group}. Options: {joined}"
-                    )
-                    logging.warning(
-                        f"Couldn't find {target} in {group}. Options: {joined}"
-                    )
 
     @_snitch.command(name="on", require_var_positional=True)
     async def _words_add(self, ctx: commands.Context, group: str, *words: str):
@@ -200,7 +188,6 @@ class Snitch(commands.Cog):
                 await ctx.channel.send(page)
         except Exception as e:
             logging.error(e)
-            await ctx.channel.send(e)
             await ctx.send("I can't send direct messages to you.")
 
     async def _send_to_member(
@@ -240,7 +227,6 @@ class Snitch(commands.Cog):
                     for member in role.members:
                         await self._send_to_member(member, base_msg, embed)
             except Exception as e:
-                await ctx.channel.send(e)
                 logging.error(e)
 
     async def _check_words(self, message: discord.Message):
