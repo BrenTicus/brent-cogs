@@ -23,6 +23,7 @@ class Snitch(commands.Cog):
         self.config = Config.get_conf(self, identifier=586925412)
         default_guild_settings = {"notifygroups": {}}
         self.config.register_guild(**default_guild_settings)
+        logging.basicConfig(level=logging.DEBUG)
 
     @commands.group("snitch")
     @commands.guild_only()
