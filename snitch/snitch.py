@@ -269,7 +269,7 @@ class Snitch(commands.Cog):
             or x is list
             and any([y for y in x if message.clean_content.startswith(y)])
         )
-        logging.debug(f"Prefixes: {prefixes} / Check: {prefix_check(prefixes)}")
+        logging.info(f"Prefixes: {prefixes} / Check: {prefix_check(prefixes)}")
         if prefix_check(prefixes):
             return
 
