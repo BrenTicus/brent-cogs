@@ -264,9 +264,9 @@ class Snitch(commands.Cog):
 
         prefixes = await self.bot.get_prefix(message)
         prefix_check = (
-            prefixes is str and message.clean_content.startswith(prefixes)
+            isinstance(prefixes, str) and message.clean_content.startswith(prefixes)
         ) or (
-            prefixes is list
+            isinstance(prefixes, list)
             and any([True for y in prefixes if message.clean_content.startswith(y)])
         )
         list_check = [True for y in prefixes if message.clean_content.startswith(y)]
