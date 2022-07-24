@@ -269,7 +269,9 @@ class Snitch(commands.Cog):
             prefixes is list
             and any([y for y in prefixes if message.clean_content.startswith(y)])
         )
-        logging.warning(f"Prefixes: {prefixes} / Check: {prefix_check}")
+        logging.warning(
+            f"Prefixes: {prefixes} / Check: {prefix_check} / Message: {message.clean_content}"
+        )
         if prefix_check:
             return
 
