@@ -1,9 +1,9 @@
 import asyncio
 import discord
+import logging
 import re
 from datetime import timezone
 from typing import Union, Set, Literal, Optional
-
 from redbot.core import checks, Config, modlog, commands
 from redbot.core.bot import Red
 from redbot.core.utils.predicates import MessagePredicate
@@ -38,6 +38,7 @@ class Snitch(commands.Cog):
         # try to coerce the value into an appropriate object and if it works bail out. As a bonus, these aren't
         # async so we can just fudge it like so.
         maybe_id = target.strip("!<#>")
+        logging.log(logging.info(f"ID candidate: {maybe_id}"))
         if maybe_id.isnumeric():
             if coerced := server.get_member(int(maybe_id)):
                 pass
@@ -182,7 +183,8 @@ class Snitch(commands.Cog):
         try:
             for page in pagify(group_text, delims=[" ", "\n"], shorten_by=8):
                 await ctx.channel.send(page)
-        except discord.Forbidden:
+        except Exception as e:
+            logging.log(logging.ERROR, e)
             await ctx.send("I can't send direct messages to you.")
 
     async def _send_to_member(
@@ -194,6 +196,7 @@ class Snitch(commands.Cog):
         if member.bot:
             return
         await member.send(content=message, embed=embed)
+        logging.log(logging.INFO, f"Sent {message} to {member.display_name}.")
 
     async def _notify_words(self, message: discord.Message, targets: list, words: list):
         """Notify people who need to be notified."""
@@ -220,8 +223,8 @@ class Snitch(commands.Cog):
                     role = message.guild.get_role(target_id)
                     for member in role.members:
                         await self._send_to_member(member, base_msg, embed)
-            except discord.HTTPException:
-                pass
+            except Exception as e:
+                logging.log(logging.ERROR, e)
 
     async def _check_words(self, message: discord.Message):
         """Check whether we really should notify people."""
