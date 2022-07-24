@@ -195,10 +195,15 @@ class Snitch(commands.Cog):
         message: str,
         embed: discord.Embed,
     ):
-        if member.bot:
-            return
-        await member.send(content=message, embed=embed)
-        logging.info(f"Sent {message} to {member.display_name}.")
+        try:
+            if member.bot:
+                return
+            await member.send(content=message, embed=embed)
+            logging.info(f"Sent {message} to {member.display_name}.")
+        except Exception as e:
+            logging.error(
+                f'EXCEPTION {e}\n  Failed in sending "{message}" to {member.display_name}.'
+            )
 
     async def _notify_words(self, message: discord.Message, targets: list, words: list):
         """Notify people who need to be notified."""
