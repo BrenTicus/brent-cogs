@@ -187,7 +187,9 @@ class Snitch(commands.Cog):
             for page in pagify(group_text, delims=[" ", "\n"], shorten_by=8):
                 await ctx.channel.send(page)
         except Exception as e:
-            logging.error(f"EXCPETION {e}\n  Triggered on {ctx.message} by {author}")
+            logging.error(
+                f"EXCEPTION {e}\n  Triggered on {ctx.message.clean_content()} by {author}"
+            )
             await ctx.send("I can't send direct messages to you.")
 
     async def _send_to_member(
@@ -228,7 +230,7 @@ class Snitch(commands.Cog):
                         await self._send_to_member(member, base_msg, embed)
             except Exception as e:
                 logging.error(
-                    f"EXCPETION {e}\n  Triggered on {message} by {message.author}"
+                    f"EXCEPTION {e}\n  Triggered on {message.clean_content()} by {message.author}"
                 )
 
     async def _check_words(self, message: discord.Message):
