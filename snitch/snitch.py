@@ -39,7 +39,6 @@ class Snitch(commands.Cog):
         # try to coerce the value into an appropriate object and if it works bail out. As a bonus, these aren't
         # async so we can just fudge it like so.
         maybe_id = target.strip("!<#>")
-        ctx.channel.send(f"ID candidate: {maybe_id}")
         logging.info(f"ID candidate: {maybe_id}")
         if maybe_id.isnumeric():
             if coerced := server.get_member(int(maybe_id)):
@@ -273,7 +272,7 @@ class Snitch(commands.Cog):
         if await self.bot.cog_disabled_in_guild(self, message.guild):
             return
 
-        prefixes = await self.bot.get_prefix()
+        prefixes = await self.bot.get_prefix(message)
         prefix_check = (
             lambda x: x is str
             and message.clean_content.startswith(x)
