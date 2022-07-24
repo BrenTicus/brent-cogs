@@ -227,7 +227,9 @@ class Snitch(commands.Cog):
                     for member in role.members:
                         await self._send_to_member(member, base_msg, embed)
             except Exception as e:
-                logging.error(e)
+                logging.error(
+                    f"EXCPETION {e}\n  Triggered on {message} by {message.author}"
+                )
 
     async def _check_words(self, message: discord.Message):
         """Check whether we really should notify people."""
