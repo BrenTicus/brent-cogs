@@ -97,7 +97,7 @@ class Snitch(commands.Cog):
                     }
                     await ctx.channel.send(f"{target_type} {target} will be notified.")
                 else:
-                    await ctx.channel.send(f"Could not identify {target}."
+                    await ctx.channel.send(f"Could not identify {target}.")
             notifygroups[group] = notifygroup
 
     @_snitch.command(name="notto")
