@@ -49,5 +49,6 @@ class Recorder(commands.Cog):
         :param message: The message post edit.
         :type message: dicord.Message
         """
-        message.content = f"*edit {message.content}"
+        # This obviously isn't great but it doesn't seem to stick otherwise.
+        message._handle_content(f"*edit {message.content}")
         await self.on_message(message)
