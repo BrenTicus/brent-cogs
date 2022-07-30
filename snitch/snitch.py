@@ -5,6 +5,7 @@ import re
 from datetime import timezone
 from typing import List, Optional, Union
 from redbot.core import checks, Config, commands
+from redbot.core.utils.chat_formatting import pagify
 
 
 class Snitch(commands.Cog):
