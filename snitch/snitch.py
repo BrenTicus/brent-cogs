@@ -193,6 +193,12 @@ class Snitch(commands.Cog):
     async def _message_change(self, ctx: commands.Context, group: str, message: str):
         """Change the message sent with your snitch.
 
+        Tokens:
+            {{author}} - The display name of the message author.
+            {{channel}} - The channel name the message originated in.
+            {{server}} - The server name the message originated in.
+            {{words}} - The list of words that triggered the message.
+
         :param ctx: The Discord Red command context.
         :type ctx: commands.Context
         :param group: The notification group to modify.
@@ -301,7 +307,13 @@ class Snitch(commands.Cog):
         :type base_msg: Optional[str]
         """
         word_msg = " and ".join(words)
-        base_msg = f"Snitching on {message.author.display_name} for saying {word_msg}"
+        base_msg = base_msg or "Snitching on {{author}} for saying {{words}}"
+        base_msg = (
+            base_msg.replace("{{author}}", message.author.display_name)
+            .replace("{{words}}", word_msg)
+            .replace("{{server}}", message.guild.name)
+            .replace("{{channel}}", message.channel.name)
+        )
 
         embed = discord.Embed(
             title=f"{message.author.display_name} in {message.channel}",
