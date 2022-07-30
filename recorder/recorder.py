@@ -16,7 +16,7 @@ class Recorder(commands.Cog):
         self.config = Config.get_conf(self, identifier=675274376)
 
     @commands.Cog.listener()
-    async def on_message(self, message: discord.Message):
+    async def on_message(self, message: discord.Message, *, edit=False):
         """Check and record every message the bot sees.
 
         :param message: The message.
@@ -30,6 +30,8 @@ class Recorder(commands.Cog):
             return
         # Collect some information
         content = message.clean_content
+        if edit:
+            content = f"*edit* {content}"
         author = f"{message.author.display_name}/{message.author.name}#{message.author.discriminator}"
         channel = message.channel.name
         time = message.created_at
@@ -49,6 +51,4 @@ class Recorder(commands.Cog):
         :param message: The message post edit.
         :type message: dicord.Message
         """
-        # This obviously isn't great but it doesn't seem to stick otherwise.
-        message._handle_content(f"*edit {message.content}")
-        await self.on_message(message)
+        await self.on_message(message, edit=True)
