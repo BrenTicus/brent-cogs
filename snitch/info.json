@@ -7,7 +7,7 @@
     "short": "Snitch on users for saying configured words.",
     "min_python_version": [
         3,
-        9,
+        8,
         0
     ],
     "end_user_data_statement": "Messageable interfaces for server members, channels, and roles may be stored in the bot config depending on cog configuration. No data is stored outside of bot config or log files.",
