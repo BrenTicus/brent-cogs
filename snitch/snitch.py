@@ -3,7 +3,7 @@ import discord
 import logging
 import re
 from datetime import timezone
-from typing import List, Optional, Union
+from typing import Optional, Union
 from redbot.core import checks, Config, commands
 from redbot.core.utils.chat_formatting import pagify
 
@@ -167,7 +167,7 @@ class Snitch(commands.Cog):
             notifygroups[group] = notifygroup
 
     @_snitch.command(name="noton", require_var_positional=True)
-    async def _words_remove(self, ctx: commands.Context, group: str, *words: List[str]):
+    async def _words_remove(self, ctx: commands.Context, group: str, *words: str):
         """Remove trigger words from the notification group. Use double quotes to remove sentences.
 
         Examples:
