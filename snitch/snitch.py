@@ -220,17 +220,25 @@ class Snitch(commands.Cog):
             await ctx.channel.send(f"Message for {group} updated.")
 
     @_snitch.command(name="clear")
-    async def _clear_list(self, ctx: commands.Context):
-        """Wipe out all config data.
+    async def _clear_list(self, ctx: commands.Context, group: str = None):
+        """Remove all config data for the group. Omit the group to clear all config data for this cog.
 
         Example:
             [p]snitch clear
+            [p]snitch clear tech
 
         :param ctx: The Discord Red command context.
         :type ctx: commands.Context
+        :param group: The notification group to modify.
+        :type group: Optional[str]
         """
-        await self.config.guild(ctx.guild).notifygroups.clear()
-        await ctx.channel.send("Cleared all snitch settings.")
+        if not group:
+            await self.config.guild(ctx.guild).notifygroups.clear()
+            await ctx.channel.send("Cleared all snitch settings.")
+        else:
+            async with self.config.guild(server).notifygroups() as notifygroups:
+                if notifygroups.get(group):
+                    del notifygroups[group]
 
     @_snitch.command(name="list")
     async def _global_list(self, ctx: commands.Context):

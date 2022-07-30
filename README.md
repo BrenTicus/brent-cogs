@@ -25,7 +25,7 @@ You can run `[p]help cog-name` to get most of this.
 Notify groups of users, roles, or channels when certain phrases are said. The base command is `snitch`.
 * `snitch clear` - Wipe out all config data.
 * `snitch list` - Send a list of this server's people and words involved in snitching.
-* `snitch clear` - Remove all config data for this cog.
+* `snitch clear [group]` - Remove all config data for the group. Omit the group to clear all config data for this cog.
 * `snitch to [group_name] [user or role or channel...]` - Add people, roles, or channels to a notification group.
 * `snitch notto [group_name] [user or role or channel...]` - Remove people, roles, or channels from a notification group.
 * `snitch on [group_name] [words...]` - Add trigger words to a notification group.
