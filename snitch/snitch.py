@@ -216,25 +216,27 @@ class Snitch(commands.Cog):
             url=message.jump_url,
             colour=discord.Color.red(),
         )
+        waitlist = []
         for target in targets:
             try:
                 target_id = target["id"]
                 target_type = target["type"]
                 if target_type == "TextChannel":
                     chan = message.guild.get_channel(target_id)
-                    await chan.send(f"@everyone {base_msg}", embed=embed)
+                    waitlist.append(chan.send(f"@everyone {base_msg}", embed=embed))
                     logging.info(f"Sent {message} to {chan.name}.")
                 elif target_type == "Member":
                     member = message.guild.get_member(target_id)
-                    await self._send_to_member(member, base_msg, embed)
+                    waitlist.append(self._send_to_member(member, base_msg, embed))
                 elif target_type == "Role":
                     role = message.guild.get_role(target_id)
                     for member in role.members:
-                        await self._send_to_member(member, base_msg, embed)
+                        waitlist.append(self._send_to_member(member, base_msg, embed))
             except Exception as e:
                 logging.error(
                     f"EXCEPTION {e}\n  Trying to message {target}\n  Triggered on {message.clean_content} by {message.author}"
                 )
+        asyncio.wait(waitlist, return_when=asyncio.ALL_COMPLETED)
 
     async def _check_words(self, message: discord.Message):
         """Check whether we really should notify people."""
