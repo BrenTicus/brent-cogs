@@ -32,12 +32,12 @@ class Recorder(commands.Cog):
         content = message.clean_content
         if edit:
             content = f"*edit* {content}"
-        author = f"@{message.author.display_name}/{message.author.name}#{message.author.discriminator}"
-        channel = f"#{message.channel.name}"
+        author = f"{message.author.display_name}/{message.author.name}#{message.author.discriminator}"
+        channel = f"{message.channel.name}"
         server = message.guild.name
         time = message.created_at
         # Compile the message and filename.
-        log_message = f"{time} | {channel} | {author} :: {content}\n"
+        log_message = f"{time} | #{channel} | @{author} :: {content}\n"
         log_file = f"recorder.{server}.{channel}.log"
         # Write out the message.
         folder = cog_data_path(cog_instance=self)
