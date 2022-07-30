@@ -171,7 +171,7 @@ class Snitch(commands.Cog):
         """Remove trigger words from the notification group. Use double quotes to remove sentences.
 
         Examples:
-            - `[p]snitch noton text wifi`
+            - `[p]snitch noton tech wifi`
 
         :param ctx: The Discord Red command context.
         :type ctx: commands.Context
@@ -192,7 +192,10 @@ class Snitch(commands.Cog):
 
     @_snitch.command(name="with", require_var_positional=True)
     async def _message_change(self, ctx: commands.Context, group: str, message: str):
-        """Change the message sent with your snitch.
+        """Change the message sent with your snitch. Use double quotes around the message.
+
+        Example:
+            `[p]snitch with tech "{{author}} needs IT assistance in {{channel}}."
 
         Tokens:
             {{author}} - The display name of the message author.

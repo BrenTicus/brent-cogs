@@ -30,3 +30,11 @@ Notify groups of users, roles, or channels when certain phrases are said. The ba
 * `snitch notto [group_name] [user or role or channel...]` - Remove people, roles, or channels from a notification group.
 * `snitch on [group_name] [words...]` - Add trigger words to a notification group.
 * `snitch noton [group_name] [words...]` - Remove trigger words from the notification group. 
+* `snitch with [group_name] "[message]"` - Change the message sent with your snitch. Use double quotes around the message.
+
+### `with` Tokens
+Put these strings in your message and they'll be replaced with appropriate values.
+* `{{author}}` - The display name of the message author.
+* `{{channel}} `- The channel name the message originated in.
+* `{{server}}` - The server name the message originated in.
+* `{{words}}` - The list of words that triggered the message.
