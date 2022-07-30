@@ -236,7 +236,8 @@ class Snitch(commands.Cog):
                 logging.error(
                     f"EXCEPTION {e}\n  Trying to message {target}\n  Triggered on {message.clean_content} by {message.author}"
                 )
-        asyncio.wait(waitlist, return_when=asyncio.ALL_COMPLETED)
+        if waitlist:
+            await asyncio.wait(waitlist, return_when=asyncio.ALL_COMPLETED)
 
     async def _check_words(self, message: discord.Message):
         """Check whether we really should notify people."""
