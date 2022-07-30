@@ -33,7 +33,7 @@ class Recorder(commands.Cog):
         author = f"{message.author.display_name}/{message.author.name}#{message.author.discriminator}"
         channel = message.channel.name
         time = message.created_at
-        log_message = f"{time}|{author}|{content}\n"
+        log_message = f"{time} | {channel} | {author} :: {content}\n"
         log_file = f"recorder.{channel}.log"
         folder = cog_data_path(cog_instance=self)
         full_path = folder / log_file
