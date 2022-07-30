@@ -32,8 +32,8 @@ class Recorder(commands.Cog):
         content = message.clean_content
         if edit:
             content = f"*edit* {content}"
-        author = f"{message.author.display_name}/{message.author.name}#{message.author.discriminator}"
-        channel = message.channel.name
+        author = f"@{message.author.display_name}/{message.author.name}#{message.author.discriminator}"
+        channel = f"#{message.channel.name}"
         server = message.guild.name
         time = message.created_at
         # Compile the message and filename.

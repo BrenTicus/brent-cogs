@@ -38,3 +38,8 @@ Put these strings in your message and they'll be replaced with appropriate value
 * `{{channel}} `- The channel name the message originated in.
 * `{{server}}` - The server name the message originated in.
 * `{{words}}` - The list of words that triggered the message.
+
+## Recorder
+Save all messages in the server to a log file. Broken up by channel and server name.
+
+Goes into the Red data directory for your instance. On Linux the path will look something like `~/.local/share/Red-DiscordBot/data/instance/cogs/Recorder`.
