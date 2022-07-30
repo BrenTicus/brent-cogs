@@ -3,12 +3,8 @@ import discord
 import logging
 import re
 from datetime import timezone
-from typing import Union, Set, Literal, Optional
-from redbot.core import checks, Config, modlog, commands
-from redbot.core.bot import Red
-from redbot.core.utils.predicates import MessagePredicate
-from redbot.core.utils import AsyncIter
-from redbot.core.utils.chat_formatting import pagify, humanize_list
+from typing import List, Optional, Union
+from redbot.core import checks, Config, commands
 
 
 class Snitch(commands.Cog):
@@ -32,7 +28,18 @@ class Snitch(commands.Cog):
         """Base command to manage snitch settings."""
         pass
 
-    def _identify_target(self, ctx: commands.Context, target):
+    def _identify_target(
+        self, ctx: commands.Context, target: str
+    ) -> Union[discord.abc.Messageable, None]:
+        """Convert a potential target into a messageable
+
+        :param ctx: The Discord Red command context.
+        :type ctx: commands.Context
+        :param target: The potential target.
+        :type target: str
+        :return: If the target can be mapped, a Messagable. Otherwise None.
+        :rtype: Union[discord.abc.Messageable, None]
+        """
         coerced = None
         server = ctx.guild
         # We need to figure out what was passed in. If they're passed in as their ID, it's relatively easy, just
@@ -80,7 +87,15 @@ class Snitch(commands.Cog):
         IDs can be passed in using # or @ as appropriate. Text input will be evaluated checking roles, then members,
         then channels.
         Example:
-            `[p]snitch to tech #tech-general @Site.Tech Brenticus`"""
+            `[p]snitch to tech #tech-general @Site.Tech Brenticus`
+
+        :param ctx: The Discord Red command context.
+        :type ctx: commands.Context
+        :param group: The notification group to modify.
+        :type group: str
+        :param targets: The list of targets to notify.
+        :type targets: List[str]
+        """
         server = ctx.guild
         async with self.config.guild(server).notifygroups() as notifygroups:
             notifygroup = notifygroups.get(group)
@@ -104,7 +119,15 @@ class Snitch(commands.Cog):
     async def _snitch_del(self, ctx: commands.Context, group: str, *targets: str):
         """Remove people, roles, or channels from a notification group.
         Example:
-            `[p]snitch notto tech #tech-general`"""
+            `[p]snitch notto tech #tech-general`
+
+        :param ctx: The Discord Red command context.
+        :type ctx: commands.Context
+        :param group: The notification group to modify.
+        :type group: str
+        :param targets: The list of targets to notify.
+        :type targets: List[str]
+        """
         server = ctx.guild
         async with self.config.guild(server).notifygroups() as notifygroups:
             notifygroup = notifygroups.get(group)
@@ -121,10 +144,15 @@ class Snitch(commands.Cog):
     async def _words_add(self, ctx: commands.Context, group: str, *words: str):
         """Add words to the filter.
         Use double quotes to add sentences.
-        Examples:
+        Example:
             `[p]snitch on tech computer wifi it`
-        **Arguments:**
-        - `[words...]` The words or sentences to filter.
+
+        :param ctx: The Discord Red command context.
+        :type ctx: commands.Context
+        :param group: The notification group to modify.
+        :type group: str
+        :param words: The list of trigger words to notify on.
+        :type words: List[str]
         """
         server = ctx.guild
         async with self.config.guild(server).notifygroups() as notifygroups:
@@ -138,13 +166,18 @@ class Snitch(commands.Cog):
             notifygroups[group] = notifygroup
 
     @_snitch.command(name="noton", require_var_positional=True)
-    async def _words_remove(self, ctx: commands.Context, group: str, *words: str):
+    async def _words_remove(self, ctx: commands.Context, group: str, *words: List[str]):
         """Remove words from the filter.
         Use double quotes to remove sentences.
         Examples:
             - `[p]snitch noton text wifi`
-        **Arguments:**
-        - `[words...]` The words or sentences to no longer filter.
+
+        :param ctx: The Discord Red command context.
+        :type ctx: commands.Context
+        :param group: The notification group to modify.
+        :type group: str
+        :param words: The list of trigger words to notify on.
+        :type group: List[str]
         """
         server = ctx.guild
         async with self.config.guild(server).notifygroups() as notifygroups:
@@ -157,8 +190,14 @@ class Snitch(commands.Cog):
             notifygroups[group] = notifygroup
 
     @_snitch.command(name="clear")
-    async def _clear_list(self, ctx):
-        """Wipe out all config data."""
+    async def _clear_list(self, ctx: commands.Context):
+        """Wipe out all config data.
+        Example:
+            [p]snitch clear
+
+        :param ctx: The Discord Red command context.
+        :type ctx: commands.Context
+        """
         await self.config.guild(ctx.guild).notifygroups.clear()
         await ctx.channel.send("Cleared all snitch settings.")
 
@@ -166,7 +205,11 @@ class Snitch(commands.Cog):
     async def _global_list(self, ctx: commands.Context):
         """Send a list of this server's people and words involved in snitching.
         Example:
-            [p]snitch list"""
+            [p]snitch list
+
+        :param ctx: The Discord Red command context.
+        :type ctx: commands.Context
+        """
         server = ctx.guild
         author = ctx.author
         group_list = await self.config.guild(server).notifygroups()
@@ -193,8 +236,17 @@ class Snitch(commands.Cog):
         self,
         member: discord.Member,
         message: str,
-        embed: discord.Embed,
+        embed: Optional[discord.Embed] = None,
     ):
+        """DM a member.
+
+        :param member: The member who the bot will DM.
+        :type member: discord.Member
+        :param message: The message to send.
+        :type message: str
+        :param embed: The embed to include with the message.
+        :type embed: discord.Embed
+        """
         try:
             if member.bot:
                 return
@@ -206,7 +258,15 @@ class Snitch(commands.Cog):
             )
 
     async def _notify_words(self, message: discord.Message, targets: list, words: list):
-        """Notify people who need to be notified."""
+        """Notify the targets configured to be notifies.
+
+        :param message: The message that triggered this notification.
+        :type message: discord.Message
+        :param targets: The list of targets to be notified.
+        :type targets: list
+        :param words: The list of words that triggered this notification.
+        :type words: list
+        """
         word_msg = " and ".join(words)
         base_msg = f"Snitching on {message.author.display_name} for saying {word_msg}"
         embed = discord.Embed(
@@ -216,6 +276,7 @@ class Snitch(commands.Cog):
             url=message.jump_url,
             colour=discord.Color.red(),
         )
+        # Loop over all the targets identified in the config and send them a message.
         waitlist = []
         for target in targets:
             try:
@@ -236,16 +297,22 @@ class Snitch(commands.Cog):
                 logging.error(
                     f"EXCEPTION {e}\n  Trying to message {target}\n  Triggered on {message.clean_content} by {message.author}"
                 )
+        # We only await at the end since an @everyone in a big server takes freaking forever otherwise.
         if waitlist:
             await asyncio.wait(waitlist, return_when=asyncio.ALL_COMPLETED)
 
     async def _check_words(self, message: discord.Message):
-        """Check whether we really should notify people."""
+        """Check whether we really should notify people.
+
+        :param message: The message to check for trigger words.
+        :type message: discord.Message
+        """
         server = message.guild
 
         async with self.config.guild(server).notifygroups() as notifygroups:
             for notifygroup in notifygroups.values():
                 word_list = notifygroup["words"]
+                # Escape and combine the words into a regex matching string.
                 if word_list:
                     pattern = re.compile(
                         "|".join(rf"\b{re.escape(w)}\b" for w in word_list), flags=re.I
@@ -254,20 +321,28 @@ class Snitch(commands.Cog):
                     pattern = None
                 matches = None
                 if pattern:
+                    # See if there are any hits.
                     matches = set(pattern.findall(message.content))
                 if matches:
+                    # If there are, tell the targets.
                     await self._notify_words(
                         message, notifygroup["targets"].values(), matches
                     )
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
+        """Check every message the bot can see for trigger words.
+
+        :param message: The message.
+        :type message: discord.Message
+        """
+        # This can only run in servers.
         if message.guild is None:
             return
-
+        # Make sure the bot is allowed in the server.
         if await self.bot.cog_disabled_in_guild(self, message.guild):
             return
-
+        # Check if the message starts with a prefix, indicating it's a command.
         prefixes = await self.bot.get_prefix(message)
         prefix_check = (
             isinstance(prefixes, str) and message.clean_content.startswith(prefixes)
@@ -277,19 +352,24 @@ class Snitch(commands.Cog):
         )
         if prefix_check:
             return
-
+        # Check if the message was sent by an actual person.
         author = message.author
         valid_user = isinstance(author, discord.Member) and not author.bot
         if not valid_user:
             return
-
+        # Check if automod contexts would normally ignore this message.
         if await self.bot.is_automod_immune(message):
             return
-
+        # Now we shuffle the work off to another method.
         await self._check_words(message)
 
     @commands.Cog.listener()
-    async def on_message_edit(self, _prior, message):
-        # message content has to change for non-bot's currently.
-        # if this changes, we should compare before passing it.
+    async def on_message_edit(self, _prior, message: discord.Message):
+        """Check every edit the bot can see for trigger words.
+
+        :param _prior: The message prior to editing.
+        :type _prior: None
+        :param message: The message post edit.
+        :type message: dicord.Message
+        """
         await self.on_message(message)
