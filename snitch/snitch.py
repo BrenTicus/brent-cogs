@@ -232,13 +232,18 @@ class Snitch(commands.Cog):
         :param group: The notification group to modify.
         :type group: Optional[str]
         """
+        server = ctx.guild
+        # If group isn't identified clear everything.
         if not group:
             await self.config.guild(ctx.guild).notifygroups.clear()
             await ctx.channel.send("Cleared all snitch settings.")
-        else:
-            async with self.config.guild(server).notifygroups() as notifygroups:
-                if notifygroups.get(group):
-                    del notifygroups[group]
+            return
+        async with self.config.guild(server).notifygroups() as notifygroups:
+            if notifygroups.get(group):
+                notifygroups.pop(group)
+                await ctx.channel.send(f"Removed {group} from snitch settings.")
+            else:
+                await ctx.channel.send(f"Could not find {group} in snitch settings.")
 
     @_snitch.command(name="list")
     async def _global_list(self, ctx: commands.Context):
