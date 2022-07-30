@@ -1,0 +1,16 @@
+{
+    "name": "recorder",
+    "author": [
+        "Brent Glowinski (@BrenTicus)"
+    ],
+    "description": "Record all messages sent in a server.",
+    "short": "Record all messages sent in a server.",
+    "min_python_version": [
+        3,
+        8,
+        0
+    ],
+    "end_user_data_statement": "All messages in a server, along with the channel name and author of the message (display name and user name) are stored in a log file in the Discord Red data folder. Nothing is stored outside of typical Red folders.",
+    "hidden": false,
+    "disabled": false
+}
