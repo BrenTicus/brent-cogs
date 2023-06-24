@@ -338,7 +338,7 @@ class Snitch(commands.Cog):
             description=message.content,
             url=message.jump_url,
             colour=discord.Color.red(),
-        ).set_thumbnail(url=message.author.avatar_url)
+        ).set_thumbnail(url=message.author.display_avatar.url)
         # Loop over all the targets identified in the config and send them a message.
         waitlist = []
         for target in targets:
