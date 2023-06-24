@@ -347,15 +347,27 @@ class Snitch(commands.Cog):
                 target_type = target["type"]
                 if target_type == "TextChannel":
                     chan = message.guild.get_channel(target_id)
-                    waitlist.append(chan.send(f"@everyone {base_msg}", embed=embed))
+                    waitlist.append(
+                        asyncio.create_task(
+                            chan.send(f"@everyone {base_msg}", embed=embed)
+                        )
+                    )
                     logging.info(f"Sent {message} to {chan.name}.")
                 elif target_type == "Member":
                     member = message.guild.get_member(target_id)
-                    waitlist.append(self._send_to_member(member, base_msg, embed))
+                    waitlist.append(
+                        asyncio.create_task(
+                            self._send_to_member(member, base_msg, embed)
+                        )
+                    )
                 elif target_type == "Role":
                     role = message.guild.get_role(target_id)
                     for member in role.members:
-                        waitlist.append(self._send_to_member(member, base_msg, embed))
+                        waitlist.append(
+                            asyncio.create_task(
+                                self._send_to_member(member, base_msg, embed)
+                            )
+                        )
             except Exception as e:
                 logging.error(
                     f"EXCEPTION {e}\n  Trying to message {target}\n  Triggered on {message.clean_content} by {message.author}"
