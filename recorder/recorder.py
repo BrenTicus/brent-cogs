@@ -1,5 +1,6 @@
 import asyncio
 import discord
+import logging
 import pathlib
 from redbot.core import checks, Config, commands
 from redbot.core.data_manager import cog_data_path
@@ -44,6 +45,7 @@ class Recorder(commands.Cog):
         full_path = folder / log_file
         with open(full_path, "a") as file:
             file.write(log_message)
+        logging.info(log_message)
 
     @commands.Cog.listener()
     async def on_message_edit(self, _prior, message: discord.Message):
