@@ -340,8 +340,11 @@ class Snitch(commands.Cog):
             colour=discord.Color.red(),
         ).set_thumbnail(url=message.author.display_avatar.url)
         # Loop over all the targets identified in the config and send them a message.
+        # Cap at 20 simultaneous requests.
         waitlist = []
+        sem = asyncio.Semaphore(20)
         for target in targets:
+            await sem.acquire()
             try:
                 target_id = target["id"]
                 target_type = target["type"]
@@ -368,10 +371,17 @@ class Snitch(commands.Cog):
                                 self._send_to_member(member, base_msg, embed)
                             )
                         )
+            except discord.RateLimited as e:
+                logging.error(
+                    f"EXCEPTION {e}\n  Hit excessive rate limit. Waiting {e.retry_after} seconds to try again."
+                )
+                await asyncio.sleep(e.retry_after)
             except Exception as e:
                 logging.error(
                     f"EXCEPTION {e}\n  Trying to message {target}\n  Triggered on {message.clean_content} by {message.author}"
                 )
+            finally:
+                sem.release()
         # We only await at the end since an @everyone in a big server takes freaking forever otherwise.
         if waitlist:
             await asyncio.wait(waitlist, return_when=asyncio.ALL_COMPLETED)
