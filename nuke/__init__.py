@@ -1,5 +1,5 @@
 from .nuke import Nuke
 
 
-def setup(bot):
-    bot.add_cog(Nuke(bot))
+async def setup(bot):
+    await bot.add_cog(Nuke(bot))
