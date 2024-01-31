@@ -1,0 +1,16 @@
+{
+    "name": "nuke",
+    "author": [
+        "Brent Glowinski (@BrenTicus)"
+    ],
+    "description": "Remove users from a server en masse.",
+    "short": "Remove users from a server en masse.",
+    "min_python_version": [
+        3,
+        11,
+        0
+    ],
+    "end_user_data_statement": "",
+    "hidden": false,
+    "disabled": false
+}
