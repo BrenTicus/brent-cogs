@@ -40,9 +40,9 @@ class Nuke(commands.Cog):
         all_roles = await fetch_roles()
         guild = ctx.guild
         exclude_people = []
-        # Go over the provided roles and 
+        # Go over the provided roles and
         for name in names:
-            role_filter = [ x for x in all_roles if x.name == name ]
+            role_filter = [x for x in all_roles if x.name == name]
             if role_filter:
                 role = role_filter[0]
                 exclude_people = exclude_people + role.members
@@ -50,8 +50,10 @@ class Nuke(commands.Cog):
                 misses.append(name)
         if misses:
             miss_text = ", ".join(misses)
-            await miss_send ctx.channel.send(f"The following roles could not be found: {misses}.\nNot running until all roles are recognized.")
+            await ctx.channel.send(
+                f"The following roles could not be found: {misses}.\nNot running until all roles are recognized."
+            )
             return
         all_members = ctx.guild.members
-        kickable_members = [ x for x in all_members if x not in exclude_people ]
+        kickable_members = [x for x in all_members if x not in exclude_people]
         _remove_users(kickable_members)
