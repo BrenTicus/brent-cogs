@@ -32,7 +32,6 @@ class Nuke(commands.Cog):
             pass
         pass
 
-    @_nuke.command("nukeexcept")
     @commands.guild_only()
     @checks.admin_or_permissions(manage_guild=True)
     async def nuke_not(self, ctx: commands.Context, *names):
