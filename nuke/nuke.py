@@ -15,7 +15,7 @@ class Nuke(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=235841895)
 
-    def _remove_users(*users):
+    async def _remove_users(*users):
         """Actually kick the users from the guild."""
         waitlist = []
         for user in users:
@@ -56,4 +56,4 @@ class Nuke(commands.Cog):
             return
         all_members = ctx.guild.members
         kickable_members = [x for x in all_members if x not in exclude_people]
-        _remove_users(kickable_members)
+        await _remove_users(kickable_members)
