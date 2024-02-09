@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "brent-cogs"
+version = "0.3.0"
+description = "Discord Red cogs, primarily for the Animethon Discord server."
+authors = ["Brent Glowinski <brent.glowinski@pm.me>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.12"
+Red-DiscordBot = "^3.5.5"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
