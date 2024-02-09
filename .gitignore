@@ -1,3 +1,5 @@
 venv/
 __pycache__/
 .vscode/settings.json
+.session.vim
+.python-version
